@@ -9,7 +9,7 @@ import os
 logging.basicConfig(level=logging.INFO, format='%(asctime)s - %(levelname)s - %(message)s')
 
 
-def load_game_names(filename='game_monitor_results_20241029_194719_update.csv'):
+def load_game_names(filename):
     """从CSV文件中加载game_name列"""
     try:
         data = pd.read_csv(filename)
@@ -21,19 +21,19 @@ def load_game_names(filename='game_monitor_results_20241029_194719_update.csv'):
         logging.error(f"加载游戏名称时出错: {e}")
         return []
 
-def get_ai_trends(timeframe='today 1-m'):
+def get_ai_trends(filename, timeframe='today 1-m'):
     pytrends = TrendReq(hl='en-US', tz=360)
 
-    ai_keywords_orgin, urls = load_game_names()
+    ai_keywords_orgin, urls = load_game_names(filename)
     ai_keywords = []
     for i in range(len(ai_keywords_orgin)):
         url = urls[i]
         if "post" not in url:
             ai_keywords.append(ai_keywords_orgin[i])
 
-    
+
     all_trends = pd.DataFrame()
-    
+
     for i in range(0, len(ai_keywords), 5):
         keywords_batch = ai_keywords[i:i+5]
         try:
@@ -44,7 +44,7 @@ def get_ai_trends(timeframe='today 1-m'):
             time.sleep(2)  # 增加延迟以避免被封禁
         except Exception as e:
             logging.error(f"Error fetching trends for {keywords_batch}: {e}")
-    
+
     return all_trends
 
 
@@ -68,7 +68,7 @@ def calculate_trend_increase(df, urls):
                     'avg_value': avg_value,
                     'increase': increase
                 })
-    
+
     trends_df = pd.DataFrame(trends_data)
     if not trends_df.empty:
         trends_df = trends_df.sort_values('increase', ascending=False).reset_index(drop=True)
@@ -83,10 +83,11 @@ def save_data(df, filename):
 
 def collect_google_trends_data():
     logging.info("开始收集最近30天的Google Trends数据")
-    trends_df = get_ai_trends()
-    
+    filename = f'game_monitor_results_{datetime.now().strftime("%Y%m%d")}.csv'
+    trends_df = get_ai_trends(filename)
+
     if not trends_df.empty:
-        ai_keywords_orgin, urls = load_game_names()
+        ai_keywords_orgin, urls = load_game_names(filename)
         increases_df = calculate_trend_increase(trends_df, urls)
         os.makedirs('data', exist_ok=True)
         timestamp = datetime.now().strftime("%Y%m%d_%H%M%S")

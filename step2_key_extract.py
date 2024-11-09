@@ -11,7 +11,7 @@ from openai import OpenAI
 logging.basicConfig(level=logging.INFO, format='%(asctime)s - %(levelname)s - %(message)s')
 
 # 设置OpenAI API密钥
-openai.api_key = 'your api key'  # 替换为实际的API密钥
+openai.api_key = 'xxxx'  # 替换为实际的API密钥
 
 
 def extract_keywords_from_game_names(game_names):
@@ -20,7 +20,7 @@ def extract_keywords_from_game_names(game_names):
     try:
         sys_prompt = "You are a Google SEO expert. I will give you some game information, and you need to help me summarize the information into a single Google SEO keyword. Please output only the keyword."
         # prompt = "从以下游戏名称中提取相关的AI关键词:\n\n" + "\n".join(game_names)
-        model_name = "gpt-3.5-turbo"  # "gpt-4o", #gpt-4o gpt-3.5-turbo  gpt-4o-ca, gpt-3.5-turbo-16k
+        model_name = "gpt-4o-mini"  # "gpt-4o", #gpt-4o gpt-3.5-turbo  gpt-4o-ca, gpt-3.5-turbo-16k
         client = OpenAI(
             api_key=openai.api_key,
             base_url="https://api.chatanywhere.tech/v1"
@@ -37,7 +37,7 @@ def extract_keywords_from_game_names(game_names):
 
 def main():
     """主函数"""
-    filename = "game_monitor_results_20241029_122228.csv"
+    filename = f'game_monitor_results_{datetime.now().strftime("%Y%m%d")}.csv'
     data = pd.read_csv(filename)
     game_names = data['game_name'].dropna().tolist()
     titles = data['title'].dropna().tolist()

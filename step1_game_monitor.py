@@ -54,14 +54,14 @@ class GameSiteMonitor:
             tbs = 'qdr:w'  # 最近1周
         else:
             raise ValueError("Invalid time range")
-        
+
         query = f'site:{site}'
         params = {
             'q': query,
             'tbs': tbs,
             'num': 100  # 每页结果数
         }
-        
+
         query_string = '&'.join([f'{k}={quote(str(v))}' for k, v in params.items()])
         return f"{base_url}?{query_string}"
 
@@ -73,20 +73,20 @@ class GameSiteMonitor:
         """
         soup = BeautifulSoup(html_content, 'html.parser')
         results = []
-        
+
         # 查找搜索结果
         for result in soup.select('div.g'):
             try:
                 title_elem = result.select_one('h3')
                 url_elem = result.select_one('a')
-                
+
                 if title_elem and url_elem:
                     title = title_elem.get_text()
                     url = url_elem['href']
-                    
+
                     # 提取可能的游戏名称
                     game_name = self.extract_game_name(title)
-                    
+
                     if game_name:
                         results.append({
                             'title': title,
@@ -95,7 +95,7 @@ class GameSiteMonitor:
                         })
             except Exception as e:
                 self.logger.error(f"Error extracting result: {str(e)}")
-                
+
         return results
 
     def extract_game_name(self, title):
@@ -111,12 +111,12 @@ class GameSiteMonitor:
             r'【(.+?)】',  # 中文方括号
             r'\[(.+?)\]'   # 英文方括号
         ]
-        
+
         for pattern in patterns:
             match = re.search(pattern, title)
             if match:
                 return match.group(1)
-        
+
         # 如果没有特定标记，返回清理后的标题
         cleaned_title = re.sub(r'(攻略|评测|资讯|下载|官网|专区|合集|手游|网游|页游|主机游戏|单机游戏)', '', title)
         return cleaned_title.strip()
@@ -130,7 +130,7 @@ class GameSiteMonitor:
         """
         search_url = self.build_google_search_url(site, time_range)
         self.logger.info(f"Monitoring {site} for {time_range} timeframe")
-        
+
         try:
             response = requests.get(search_url, headers=self.headers)
             if response.status_code == 200:
@@ -152,9 +152,9 @@ class GameSiteMonitor:
         """
         if time_ranges is None:
             time_ranges = ['24h', '1w']
-            
+
         all_results = []
-        
+
         for site in self.sites:
             for time_range in time_ranges:
                 results = self.monitor_site(site, time_range)
@@ -165,14 +165,14 @@ class GameSiteMonitor:
                         'timestamp': datetime.now().strftime('%Y-%m-%d %H:%M:%S')
                     })
                 all_results.extend(results)
-                
+
                 # 随机延时，避免请求过快
                 time.sleep(random.uniform(2, 5))
-        
+
         # 转换为DataFrame并保存
         if all_results:
             df = pd.DataFrame(all_results)
-            output_file = f'game_monitor_results_{datetime.now().strftime("%Y%m%d_%H%M%S")}.csv'
+            output_file = f'game_monitor_results_{datetime.now().strftime("%Y%m%d")}.csv'
             df.to_csv(output_file, index=False, encoding='utf-8-sig')
             self.logger.info(f"Results saved to {output_file}")
             return df
@@ -184,10 +184,10 @@ def main():
     """主函数"""
     # 创建监控器实例
     monitor = GameSiteMonitor()
-    
+
     # 开始监控
     results_df = monitor.monitor_all_sites()
-    
+
     # 输出统计信息
     if not results_df.empty:
         print("\n=== 监控统计 ===")
