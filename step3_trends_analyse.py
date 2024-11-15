@@ -60,9 +60,14 @@ def calculate_trend_increase(df, urls):
             end_value = df[column].iloc[-1]    # 确保获取单个值
             max_value = df[column].max()
             avg_value = df[column].mean()
-            if isinstance(start_value, (int, float)) and start_value > 0:  # 检查是否为数值
+            if isinstance(start_value, (int, float)):  # 检查是否为数值
                 print("end_value", start_value, end_value)
-                increase = (end_value - start_value) / start_value * 100
+                if start_value > 0:
+                    increase = (end_value - start_value) / start_value * 100
+                elif end_value > 0:
+                    increase = end_value
+                else:
+                    increase = 0
                 trends_data.append({
                     'topic': column,
                     'url': urls[df.columns.get_loc(column)],
