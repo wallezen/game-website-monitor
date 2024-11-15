@@ -20,10 +20,10 @@ def extract_keywords_from_game_names(game_names):
     try:
         sys_prompt = "You are a Google SEO expert. I will give you some game information, and you need to help me summarize the information into a single Google SEO keyword. Please output only the keyword."
         # prompt = "从以下游戏名称中提取相关的AI关键词:\n\n" + "\n".join(game_names)
-        model_name = "gpt-4o-mini"  # "gpt-4o", #gpt-4o gpt-3.5-turbo  gpt-4o-ca, gpt-3.5-turbo-16k
+        model_name = "deepseek-ai/DeepSeek-V2.5"  # "gpt-4o", #gpt-4o gpt-3.5-turbo  gpt-4o-ca, gpt-3.5-turbo-16k
         client = OpenAI(
             api_key=openai.api_key,
-            base_url="https://api.chatanywhere.tech/v1"
+            base_url="https://api.siliconflow.cn/v1"
         )
         messages = [{'role': 'system', 'content': sys_prompt},
                     {'role': 'user', 'content': game_names}, ]

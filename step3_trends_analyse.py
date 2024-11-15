@@ -4,6 +4,7 @@ from datetime import datetime, timedelta
 import time
 import logging
 import os
+import random
 
 # 设置日志
 logging.basicConfig(level=logging.INFO, format='%(asctime)s - %(levelname)s - %(message)s')
@@ -22,7 +23,7 @@ def load_game_names(filename):
         return []
 
 def get_ai_trends(filename, timeframe='today 1-m'):
-    pytrends = TrendReq(hl='en-US', tz=360)
+    pytrends = TrendReq(retries=3, backoff_factor=0.5, hl='en-US', tz=360, timeout=(5, 10))
 
     ai_keywords_orgin, urls = load_game_names(filename)
     ai_keywords = []
@@ -34,14 +35,14 @@ def get_ai_trends(filename, timeframe='today 1-m'):
 
     all_trends = pd.DataFrame()
 
-    for i in range(0, len(ai_keywords), 5):
-        keywords_batch = ai_keywords[i:i+5]
+    for i in range(0, len(ai_keywords), 2):
+        keywords_batch = ai_keywords[i:i+2]
         try:
             pytrends.build_payload(keywords_batch, timeframe=timeframe)
             interest_over_time = pytrends.interest_over_time()
             if not interest_over_time.empty:
                 all_trends = pd.concat([all_trends, interest_over_time], axis=1)
-            time.sleep(2)  # 增加延迟以避免被封禁
+            time.sleep(random.uniform(3, 8))  # 增加延迟以避免被封禁
         except Exception as e:
             logging.error(f"Error fetching trends for {keywords_batch}: {e}")
 
@@ -49,6 +50,7 @@ def get_ai_trends(filename, timeframe='today 1-m'):
 
 
 def calculate_trend_increase(df, urls):
+    print("df.columns", df.columns)
     trends_data = []
     for column in df.columns:
         if column != 'isPartial':
@@ -83,12 +85,13 @@ def save_data(df, filename):
 
 def collect_google_trends_data():
     logging.info("开始收集最近30天的Google Trends数据")
-    filename = f'game_monitor_results_{datetime.now().strftime("%Y%m%d")}.csv'
+    filename = f'game_monitor_results_{datetime.now().strftime("%Y%m%d")}_update.csv'
     trends_df = get_ai_trends(filename)
 
     if not trends_df.empty:
         ai_keywords_orgin, urls = load_game_names(filename)
         increases_df = calculate_trend_increase(trends_df, urls)
+        logging.info("increases_df: ", increases_df)
         os.makedirs('data', exist_ok=True)
         timestamp = datetime.now().strftime("%Y%m%d_%H%M%S")
         save_data(trends_df, f'data/genai_trends_raw_30days_{timestamp}.csv')
