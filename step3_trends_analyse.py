@@ -44,7 +44,9 @@ def get_ai_trends(filename, timeframe='today 1-m'):
                 # remove the column 'isPartial'
                 interest_over_time = interest_over_time.drop(columns=['isPartial'])
                 all_trends = pd.concat([all_trends, interest_over_time], axis=1)
-            time.sleep(random.uniform(3, 8))  # 增加延迟以避免被封禁
+            # set random seed
+            random.seed(time.time())
+            time.sleep(random.uniform(2, 6))  # 增加延迟以避免被封禁
         except Exception as e:
             logging.error(f"Error fetching trends for {keywords_batch}: {e}")
 
