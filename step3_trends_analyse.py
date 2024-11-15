@@ -41,6 +41,8 @@ def get_ai_trends(filename, timeframe='today 1-m'):
             pytrends.build_payload(keywords_batch, timeframe=timeframe)
             interest_over_time = pytrends.interest_over_time()
             if not interest_over_time.empty:
+                # remove the column 'isPartial'
+                interest_over_time = interest_over_time.drop(columns=['isPartial'])
                 all_trends = pd.concat([all_trends, interest_over_time], axis=1)
             time.sleep(random.uniform(3, 8))  # 增加延迟以避免被封禁
         except Exception as e:
@@ -93,7 +95,7 @@ def collect_google_trends_data():
         increases_df = calculate_trend_increase(trends_df, urls)
         logging.info("increases_df: ", increases_df)
         os.makedirs('data', exist_ok=True)
-        timestamp = datetime.now().strftime("%Y%m%d_%H%M%S")
+        timestamp = datetime.now().strftime("%Y%m%d")
         save_data(trends_df, f'data/genai_trends_raw_30days_{timestamp}.csv')
         save_data(increases_df, f'data/genai_trends_increases_30days_{timestamp}.csv')
     else:
